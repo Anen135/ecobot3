@@ -5,21 +5,22 @@ import random
 from engine.settings import WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, WORLD_WIDTH, WORLD_HEIGHT
 from engine.world import World
 from engine.camera import Camera
-from engine.entity import Entity
+from engine.entity import Agent, Food
+from engine.control import KeyboardController, MouseController, AIAgentController  # noqa: F401
 
 pygame.init()
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.FULLSCREEN if FULLSCREEN else 0)
 clock = pygame.time.Clock()
 
 world = World()
-agent = Entity(100, 100, size=20, color=(0, 255, 0))
+agent = Agent(100, 100, size=20, color=(0, 255, 0), controller=KeyboardController())
 world.add_entity(agent)
 
 # Добавим еду
 
 for _ in range(10):
     x, y = random.randint(0, WORLD_WIDTH), random.randint(0, WORLD_HEIGHT)
-    food = Entity(x, y, size=10, color=(255, 0, 0))
+    food = Food(x, y, size=10, color=(255, 0, 0))
     world.add_entity(food)
 
 camera = Camera(world, target=agent)
@@ -30,14 +31,6 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
-
-    keys = pygame.key.get_pressed()
-    speed = 200  # пикселей в секунду
-    if keys[pygame.K_w]: agent.y -= speed * dt  
-    if keys[pygame.K_s]: agent.y += speed * dt
-    if keys[pygame.K_a]: agent.x -= speed * dt
-    if keys[pygame.K_d]: agent.x += speed * dt
-
     world.update(dt)
     camera.update()
 
