@@ -1,0 +1,7 @@
+{
+    "world": {
+        "width": 1000,
+        "height": 1000,
+        "type": "bounded"
+    }
+}
