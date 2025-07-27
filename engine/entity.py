@@ -43,19 +43,43 @@ class Food(Entity):
         pass  # Food doesn't need to update
 
 class Obstacle(Entity):
-    def __init__(self, x, y, width, height, size=30, color=(100, 100, 100), layer=0):
+    def __init__(self, x, y, width, height, color=(100, 100, 100), layer=0):
+        # Заменяем size на width/height, но всё ещё передаём size как среднее значение для совместимости
+        size = (width + height) // 2
         super().__init__(x, y, layer, size, color, tags={"obstacle"})
-    
+        self.width = width
+        self.height = height
+
     def update(self, dt):
         pass  # Obstacles are static
 
+    def draw(self, surface, camera_offset=(0, 0), override_position=None):
+        draw_x, draw_y = override_position or (self.x, self.y)
+        rect = pygame.Rect(
+            draw_x - self.width // 2 - camera_offset[0],
+            draw_y - self.height // 2 - camera_offset[1],
+            self.width,
+            self.height
+        )
+        pygame.draw.rect(surface, self.color, rect)
+
+    def get_rect(self):
+        return pygame.Rect(
+            self.x - self.width // 2,
+            self.y - self.height // 2,
+            self.width,
+            self.height
+        )
+
+
 class Agent(Entity):
-    def __init__(self, x, y, size=20, color=(0, 255, 0), layer=0, controller=None):
+    def __init__(self, x, y, size=20, color=(0, 255, 0), layer=0, controller=None, angle=0):
         super().__init__(x, y, layer, size, color, tags={"agent"})
         self.controller = controller
-        self.angle = 0  # угол в градусах, 0 = вправо
+        self.angle = angle  # угол в градусах, 0 = вправо
 
     def update(self, dt):
+        
         if self.controller:
             self.controller.update(self, dt)
 

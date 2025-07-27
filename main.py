@@ -1,12 +1,11 @@
 # main.py
-# noqa: E701
 import pygame
-import random
+import random # noqa: F401
 import engine.ui as ui
-from engine.settings import WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, WORLD_WIDTH, WORLD_HEIGHT, TIMESCALE
+from engine.settings import WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, TIMESCALE
 from engine.world import World
 from engine.camera import Camera
-from engine.entity import load_world_objects
+from engine.entity import load_world_objects, Agent
 from engine.control import KeyboardController, MouseController, AIAgentController, RotatingController  # noqa: F401
 
 
@@ -23,8 +22,8 @@ for e in entities:
     world.add_entity(e)
 
 
-# Камера может навести на первого агента
-agent = next((e for e in world.entities if hasattr(e, "id") and e.id == "agent_1"), None)
+agent = Agent(x=100, y=200, controller=RotatingController())  # Создаем агента с начальной позицией и углом
+world.add_entity(agent)
 camera = Camera(world, target=agent)
 
 running = True
