@@ -3,7 +3,7 @@
 import random  # noqa: F401
 import pygame
 from .settings import WORLD_WIDTH, WORLD_HEIGHT, WORLD_TYPE, BORDER_COLOR
-from .entity import Entity  # noqa: F401
+from .entity import ENTITY_REGISTRY  # noqa: F401
 
 
 class World:
@@ -12,6 +12,9 @@ class World:
         self.height = WORLD_HEIGHT
         self.type = WORLD_TYPE
         self.entities = []
+    
+    
+    
 
     def add_entity(self, entity):
         self.entities.append(entity)
@@ -22,6 +25,9 @@ class World:
             self.apply_world_rules(entity)
 
     def apply_world_rules(self, entity):
+        if self.type == "infinite":
+            # В бесконечном мире нет ограничений
+            return # return вместо pass, чтобы sourcery не ругался на пустой метод
         if self.type == "bounded":
             half = entity.size / 2
             entity.x = max(half, min(entity.x, self.width - half))
@@ -29,10 +35,9 @@ class World:
         elif self.type == "torus":
             entity.x %= self.width
             entity.y %= self.height
-        elif self.type == "infinite":
-            pass
 
     def draw(self, surface, camera_offset):
+        self.entities.sort(key=lambda e: e.layer)  # сортируем по слою
         if self.type == "torus":
             # TORUS: отрисовка с дубликатами по краям
             for entity in self.entities:
@@ -63,6 +68,5 @@ class World:
 
         # основные позиции (центр + по краям)
         for dx in [-w, 0, w]:
-            for dy in [-h, 0, h]:
-                positions.append((x + dx, y + dy))
+            positions.extend((x + dx, y + dy) for dy in [-h, 0, h])
         return positions

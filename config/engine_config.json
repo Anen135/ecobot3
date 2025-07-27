@@ -1,0 +1,15 @@
+{
+    "engine": {
+        "world": "world_config.json",
+        "window": "window_config.json",
+        "camera": "camera_config.json",
+        "visual": "visual_config.json",
+        "objects": "world_objects.json"
+    },
+    "system": {
+        "fps_limit": 60,
+        "debug": true,
+        "fullscreen": false,
+        "timescale": 1.0
+    }
+}
