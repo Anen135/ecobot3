@@ -1,7 +1,7 @@
 # main.py
 import pygame
-import random # noqa: F401
-import engine.ui as ui
+import random 
+from engine import ui
 from engine.settings import WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, TIMESCALE
 from engine.world import World
 from engine.camera import Camera
