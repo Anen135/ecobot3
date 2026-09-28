@@ -5,6 +5,9 @@ import math
 import json
 
 class Entity:
+    # Блокирует ли объект движение при столкновении
+    blocks_movement = False
+
     def __init__(self, x, y, layer, size=20, color=(255, 255, 255), tags=None):
         self.x = x
         self.y = y
@@ -13,6 +16,8 @@ class Entity:
         self.color = color
         self.tags = set(tags or [])
         self.is_alive = True
+        self._prev_x = x  # позиция на начало кадра — для отката при коллизиях
+        self._prev_y = y
 
     def update(self, dt):
         pass  # To be overridden
@@ -34,7 +39,27 @@ class Entity:
             self.size,
             self.size
         )
-    
+
+    def save_position(self):
+        """Сохраняет текущую позицию как позицию начала кадра (для отката при коллизии)."""
+        self._prev_x = self.x
+        self._prev_y = self.y
+
+    def revert_position(self):
+        """Возвращает x/y к значениям из начала кадра (после save_position)."""
+        self.x = self._prev_x
+        self.y = self._prev_y
+
+    def on_collision(self, other, world):
+        """Реакция на столкновение с другим объектом. Переопределяется в подклассах.
+
+        Эффект/нейтральный объект игнорирует столкновение.
+        """
+
+    def skip_collision_check(self):
+        """Исключает объект из проверки коллизий (например, для визуальных эффектов)."""
+        return False
+
 class Food(Entity):
     def __init__(self, x, y, size=10, color=(255, 0, 0), layer=0):
         super().__init__(x, y, layer, size, color, tags={"food"})
@@ -42,7 +67,15 @@ class Food(Entity):
     def update(self, dt):
         pass  # Food doesn't need to update
 
+    def on_collision(self, other, world):
+        # Еда исчезает, если в неё врезается агент
+        if isinstance(other, Agent):
+            other.score += 1
+            self.is_alive = False
+
 class Obstacle(Entity):
+    blocks_movement = True  # Препятствие блокирует движение
+
     def __init__(self, x, y, width, height, color=(100, 100, 100), layer=0):
         # Заменяем size на width/height, но всё ещё передаём size как среднее значение для совместимости
         size = (width + height) // 2
@@ -52,6 +85,10 @@ class Obstacle(Entity):
 
     def update(self, dt):
         pass  # Obstacles are static
+
+    def on_collision(self, other, world):
+        # Отменяем движение того, кто врезался в препятствие
+        other.revert_position()
 
     def draw(self, surface, camera_offset=(0, 0), override_position=None):
         draw_x, draw_y = override_position or (self.x, self.y)
@@ -77,6 +114,7 @@ class Agent(Entity):
         super().__init__(x, y, layer, size, color, tags={"agent"})
         self.controller = controller
         self.angle = angle  # угол в градусах, 0 = вправо
+        self.score = 0  # очки, начисляемые за съеденную еду
 
     def update(self, dt):
         
@@ -123,7 +161,7 @@ def load_world_objects(filepath):
         try:
             entity = cls(**params)
             objects.append(entity)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - намеренно ловим все ошибки конструктора
             print(f"[!] Failed to create {obj_type}: {e}")
 
     return objects

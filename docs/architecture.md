@@ -97,7 +97,8 @@ The camera sets the `offset` so that the target entity ends up in the center of 
 * **`torus`** — coordinates are taken modulo the world size; entities are drawn with edge
   duplicates via `get_wrapped_positions()`.
 
-`World.update(dt)` calls `entity.update(dt)` for every entity and then `apply_world_rules(entity)`.
+`World.update(dt)` calls `entity.update(dt)` for every entity, then `apply_world_rules(entity)`,
+and at the end — `handle_collisions()`.
 
 ---
 
@@ -146,12 +147,14 @@ For `bounded` worlds the offset is clamped to the world bounds so the view never
 
 ---
 
-## Roadmap
+## Collision system
 
-The key unfinished direction is the **collision system**. Spec in
-[collision_system.md](collision_system.md); in short:
+Implemented per [collision_system.md](collision_system.md):
 
-* `entity.on_collision(other, world)` — the reaction to a collision;
-* the `blocks_movement` flag — whether the object blocks movement;
+* `entity.on_collision(other, world)` — the reaction to a collision; each object decides for itself
+  what to do (`Food` disappears when hit by an `Agent`, `Obstacle` cancels the other's movement);
+* the `blocks_movement` flag — whether the object blocks movement (`True` for `Obstacle`);
 * `World.handle_collisions()` — checks pairs via `colliderect()` and calls `on_collision()` from
-  both sides.
+  both sides; called from `World.update(dt)` after movement; dead entities are removed.
+
+Optional extensions (circle collisions, layer/mask-based collisions, exit events) remain open.

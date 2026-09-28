@@ -9,6 +9,7 @@ def draw_debug_panel(surface, agent, dt, world, clock):
     font = pygame.font.SysFont(None, 24)
     lines = [
         f"Agent: ({int(agent.x)}, {int(agent.y)})",
+        f"Score: {agent.score}",
         f"FPS: {int(clock.get_fps())}",
         f"Entities: {len(world.entities)}",
         f"dt: {dt:.4f}",

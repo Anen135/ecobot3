@@ -51,7 +51,7 @@ class StepCounter:
     """
     Счётчик дискретных шагов (тиков симуляции).
     """
-    def __init__(self, max_steps: int = None):
+    def __init__(self, max_steps: int | None = None):
         """
         :param max_steps: Максимальное количество шагов (необязательное ограничение)
         """

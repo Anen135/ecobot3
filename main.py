@@ -1,6 +1,5 @@
 # main.py
 import pygame
-import random 
 from engine import ui
 from engine.settings import WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, TIMESCALE
 from engine.world import World

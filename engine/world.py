@@ -12,17 +12,32 @@ class World:
         self.height = WORLD_HEIGHT
         self.type = WORLD_TYPE
         self.entities = []
-    
-    
-    
 
     def add_entity(self, entity):
         self.entities.append(entity)
 
     def update(self, dt):
         for entity in self.entities:
+            entity.save_position()  # запоминаем позицию на начало кадра
             entity.update(dt)
             self.apply_world_rules(entity)
+        # Коллизии обрабатываем после движения всех сущностей
+        self.handle_collisions()
+
+    def handle_collisions(self):
+        """Проверяет все пары объектов и вызывает on_collision() с обеих сторон."""
+        active = [e for e in self.entities if e.is_alive and not e.skip_collision_check()]
+        for i in range(len(active)):
+            for j in range(i + 1, len(active)):
+                a, b = active[i], active[j]
+                if not (a.is_alive and b.is_alive):
+                    continue
+                if a.get_rect().colliderect(b.get_rect()):
+                    a.on_collision(b, self)
+                    if a.is_alive and b.is_alive:
+                        b.on_collision(a, self)
+        # Удаляем мёртвые сущности (например, съеденную еду)
+        self.entities[:] = [e for e in self.entities if e.is_alive]
 
     def apply_world_rules(self, entity):
         if self.type == "infinite":

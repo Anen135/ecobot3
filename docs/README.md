@@ -72,7 +72,7 @@ ecobot3/
 | Camera (3 modes) | ✅ Implemented |
 | UI: debug panel, grid | ✅ Implemented |
 | Utilities `Timer`, `StepCounter` | ✅ Implemented |
-| **Collision system** (`on_collision`, `blocks_movement`, `handle_collisions`) | ⏳ Planned — see [collision_system.md](collision_system.md) |
+| **Collision system** (`on_collision`, `blocks_movement`, `handle_collisions`) | ✅ Implemented — see [collision_system.md](collision_system.md) |
 
 The detailed collision-system plan lives in [TODO.md](../TODO.md) and is reproduced in
 [collision_system.md](collision_system.md).

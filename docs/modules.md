@@ -45,7 +45,8 @@ Exported constants:
 | Method | Purpose |
 | --- | --- |
 | `add_entity(entity)` | Adds an entity to the world |
-| `update(dt)` | Calls `entity.update(dt)` for all entities, then `apply_world_rules()` |
+| `update(dt)` | For every entity: `save_position()`, then `entity.update(dt)` and `apply_world_rules()`; at the end calls `handle_collisions()` |
+| `handle_collisions()` | Checks all entity pairs: on `colliderect()` overlap calls `on_collision()` from both sides; removes dead entities |
 | `apply_world_rules(entity)` | Applies world rules (clamp for `bounded`, modulo for `torus`, nothing for `infinite`) |
 | `draw(surface, camera_offset)` | Sorts entities by `layer` and draws them; torus — with duplicates; bounded — with a border |
 | `get_wrapped_positions(entity)` | Returns a list of positions (center + 8 edge copies) for torus rendering |
@@ -58,28 +59,36 @@ Instance attributes: `width`, `height`, `type`, `entities`.
 
 ### `Entity(x, y, layer, size=20, color=(255,255,255), tags=None)`
 
-Base class: `x`, `y`, `layer`, `size`, `color`, `tags` (a set), `is_alive`.
+Base class: `x`, `y`, `layer`, `size`, `color`, `tags` (a set), `is_alive`. Class attribute
+`blocks_movement = False` (whether the object blocks movement).
 
 | Method | Purpose |
 | --- | --- |
 | `update(dt)` | Stub to be overridden |
 | `draw(surface, camera_offset=(0,0), override_position=None)` | Draws a `size × size` square centered on the position |
-| `get_rect()` | Returns a `pygame.Rect` — the entity's physical shape (centered square). Will be used by the collision system |
+| `get_rect()` | Returns a `pygame.Rect` — the entity's physical shape (centered square). Used by the collision system |
+| `save_position()` | Saves the current position as the frame-start position (`_prev_x`/`_prev_y`) |
+| `revert_position()` | Restores `x`/`y` from the frame-start position saved by `save_position()` |
+| `on_collision(other, world)` | Reaction to a collision; empty by default, overridden in subclasses |
+| `skip_collision_check()` | Returns `False`; effects can override it to `True` to exclude the object from collisions |
 
 ### `Food(x, y, size=10, color=(255,0,0), layer=0)`
 
-Food. Tag `{"food"}`. `update()` is empty.
+Food. Tag `{"food"}`. `update()` is empty. `on_collision()`: when hit by an `Agent`, gives the agent
+`+1 score` and disappears (`is_alive = False`).
 
 ### `Obstacle(x, y, width, height, color=(100,100,100), layer=0)`
 
 A rectangular obstacle. Passes `size = (width + height) // 2` to `Entity` (for compatibility) and
-keeps its own `width` / `height`. Tag `{"obstacle"}`. Overrides `draw()` and `get_rect()` for the
-rectangle shape.
+keeps its own `width` / `height`. Tag `{"obstacle"}`. `blocks_movement = True`. Overrides `draw()`
+and `get_rect()` for the rectangle shape. `on_collision()` calls `revert_position()` on the other
+object, canceling its movement.
 
 ### `Agent(x, y, size=20, color=(0,255,0), layer=0, controller=None, angle=0)`
 
 Agent. Tag `{"agent"}`. `update()` calls `self.controller.update(self, dt)` when a controller is
-set. `draw()` additionally renders a yellow direction line of length `size * 1.5`.
+set. `draw()` additionally renders a yellow direction line of length `size * 1.5`. Attributes:
+`score` (incremented when food is eaten).
 
 ### `ENTITY_REGISTRY`
 

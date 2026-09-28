@@ -1,6 +1,6 @@
 # Collision System — Specification
 
-> Status: **planned**. The current code base does not contain collision handling.
+> Status: **implemented**.
 > This document duplicates the technical specification from [TODO.md](../TODO.md) and serves as
 > an internal reference for implementation.
 
@@ -56,8 +56,8 @@ if other.blocks_movement:
     entity.revert_position()
 ```
 
-> Note: entities do not have `revert_position()` yet — the method should be added to `Entity`
-> (e.g. restoring `x`/`y` to the value from the start of the frame).
+> Note: `revert_position()` is implemented on `Entity` — it restores `x`/`y` to the position
+> saved by `save_position()` at the start of the frame.
 
 ### 5. Collision handling in `World`
 
@@ -130,9 +130,9 @@ class Enemy(Entity):
 
 | Item | Where |
 | --- | --- |
-| `get_rect()` | Already present for `Entity`, `Obstacle` (`Food` inherits from `Entity`) |
-| `World.handle_collisions()` | Add to `engine/world.py`, call from `World.update(dt)` |
-| `on_collision()` | Add as an empty method on `Entity`, override in subclasses |
-| `blocks_movement` | Class- or instance-level flag on `Entity` |
-| `revert_position()` | Add to `Entity` (revert to the position at the start of the frame) |
-| `skip_collision_check()` | Optional method to disable collisions for effects |
+| `get_rect()` | Present for `Entity`, `Obstacle` (`Food` inherits from `Entity`) |
+| `World.handle_collisions()` | In `engine/world.py`, called from `World.update(dt)` after movement |
+| `on_collision()` | Empty method on `Entity`, overridden in subclasses (`Food`, `Obstacle`) |
+| `blocks_movement` | Class-level flag on `Entity` (`False`); `True` for `Obstacle` |
+| `revert_position()` | On `Entity` — restores `x`/`y` to the `save_position()` snapshot |
+| `skip_collision_check()` | On `Entity` — returns `False`; effects can override it to `True` |

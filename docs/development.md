@@ -67,9 +67,10 @@ ruff check .
 4. **No dependency file** — a `requirements.txt` / dependency section in `pyproject.toml` is
    missing, so the Pygame dependency is not pinned anywhere.
 
-5. **Collisions are not implemented** — the `on_collision` / `blocks_movement` /
-   `handle_collisions` system described in `TODO.md` is a plan; see
-   [collision_system.md](collision_system.md).
+5. **Collision extensions are not implemented** — the base system (`on_collision` /
+   `blocks_movement` / `handle_collisions`) is implemented per
+   [collision_system.md](collision_system.md); optional extensions (circle collisions,
+   collision layers/masks, exit events) remain open.
 
 ## Workflow
 
