@@ -121,12 +121,13 @@ class Agent(Entity):
         if self.controller:
             self.controller.update(self, dt)
 
-    def draw(self, surface, camera_offset=(0, 0)):
-        super().draw(surface, camera_offset)
+    def draw(self, surface, camera_offset=(0, 0), override_position=None):
+        super().draw(surface, camera_offset, override_position)
 
-        # Отрисуем направление
-        cx = self.x - camera_offset[0]
-        cy = self.y - camera_offset[1]
+        # Отрисуем направление (от фактической позиции, включая torus-дубликаты)
+        draw_x, draw_y = override_position or (self.x, self.y)
+        cx = draw_x - camera_offset[0]
+        cy = draw_y - camera_offset[1]
         length = self.size * 1.5
 
         # Угол → радианы
