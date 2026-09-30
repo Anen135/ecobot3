@@ -22,21 +22,11 @@ class Entity:
 
     def draw(self, surface, camera_offset=(0, 0), override_position=None):
         draw_x, draw_y = override_position or (self.x, self.y)
-        rect = pygame.Rect(
-            draw_x - self.size // 2 - camera_offset[0],
-            draw_y - self.size // 2 - camera_offset[1],
-            self.size,
-            self.size
-        )
+        rect = pygame.Rect( draw_x - self.size // 2 - camera_offset[0], draw_y - self.size // 2 - camera_offset[1], self.size, self.size )
         pygame.draw.rect(surface, self.color, rect)
     
     def get_rect(self):
-        return pygame.Rect(
-            self.x - self.size // 2,
-            self.y - self.size // 2,
-            self.size,
-            self.size
-        )
+        return pygame.Rect(self.x - self.size // 2, self.y - self.size // 2, self.size, self.size)
 
     def save_position(self):
         self._prev_x = self.x
@@ -48,8 +38,6 @@ class Entity:
 
     def on_collision(self, other, world):
         pass
-    def skip_collision_check(self):
-        return False
 
 class Food(Entity):
     def __init__(self, x, y, size=10, color=(255, 0, 0), layer=0):
