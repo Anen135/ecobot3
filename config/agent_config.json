@@ -1,0 +1,14 @@
+{
+    "agent": {
+        "x": 100,
+        "y": 200,
+        "size": 20,
+        "color": [0, 255, 0],
+        "layer": 0,
+        "angle": 0,
+        "controller": {
+            "name": "ai",
+            "speed": 200
+        }
+    }
+}

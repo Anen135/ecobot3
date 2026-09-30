@@ -43,5 +43,16 @@ WORLD_WIDTH = world_cfg.get("width", 1000)
 WORLD_HEIGHT = world_cfg.get("height", 1000)
 WORLD_TYPE = world_cfg.get("type", "bounded")
 
+# Параметры агента
+agent_cfg = load_named_config("agent")["agent"]
+AGENT_X = agent_cfg.get("x", 100)
+AGENT_Y = agent_cfg.get("y", 200)
+AGENT_SIZE = agent_cfg.get("size", 20)
+AGENT_COLOR = tuple(agent_cfg.get("color", [0, 255, 0]))
+AGENT_LAYER = agent_cfg.get("layer", 0)
+AGENT_ANGLE = agent_cfg.get("angle", 0)
+# Словарь с ключом "name" (контроллер) и параметрами его конструктора; None — без контроллера
+AGENT_CONTROLLER = agent_cfg.get("controller")
+
 # Режим работы камеры (например, follow_agent, fixed и т.д.)
 CAMERA_MODE = camera_cfg.get("mode", "follow_agent")

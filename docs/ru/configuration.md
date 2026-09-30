@@ -19,6 +19,7 @@
 | `camera` | имя файла конфигурации камеры | `load_named_config("camera")` |
 | `visual` | имя файла конфигурации визуализации | `load_named_config("visual")` |
 | `objects` | имя файла объектов мира | жёстко прописано в `main.py` как `config/world_objects.json` (файл объектов загружается не через `settings.py`) |
+| `agent` | имя файла конфигурации агента | `load_named_config("agent")` — параметры игрового агента и выбранный контроллер |
 
 ### `"system"` — системные настройки
 
@@ -38,7 +39,8 @@
         "window": "window_config.json",
         "camera": "camera_config.json",
         "visual": "visual_config.json",
-        "objects": "world_objects.json"
+        "objects": "world_objects.json",
+        "agent": "agent_config.json"
     },
     "system": {
         "fps_limit": 60,
@@ -85,6 +87,55 @@
 | `background_color` | [int, int, int] | `[0, 0, 0]` | Цвет фона (RGB) |
 | `border_color` | [int, int, int] | `[255, 255, 255]` | Цвет границы мира (только для `bounded`) |
 | `grid_spacing` | int | `100` | Шаг сетки в пикселях |
+
+---
+
+## `config/agent_config.json` — агент
+
+Определяет игрового агента: параметры появления и загружаемый контроллер. Читается в `main.py`
+через `load_named_config("agent")`; экспортируемые константы — `AGENT_*`.
+
+| Ключ | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `x` | int | `100` | Координата X появления |
+| `y` | int | `200` | Координата Y появления |
+| `size` | int | `20` | Длина стороны квадрата |
+| `color` | [int, int, int] | `[0, 255, 0]` | Цвет (RGB) |
+| `layer` | int | `0` | Слой отрисовки |
+| `angle` | int | `0` | Начальное направление в градусах (0 = вправо) |
+| `controller` | string / object / null | `"rotate"` | Выбор контроллера: имя контроллера или объект с обязательным ключом `name` и параметрами конструктора; `null` — агент без контроллера |
+
+Имя контроллера выбирает ветку в фабрике `create_controller()` (`engine/control.py`), которая
+создаёт класс напрямую и читает только нужные ей параметры (лишние ключи конфигурации просто
+игнорируются). Фабрика получает `world` и `camera` из `main.py`: `world` требуется ветке `ai`,
+`camera` — ветке `mouse`; при отсутствии обязательной ссылки выбрасывается `ValueError`.
+
+| Имя контроллера | Класс | Параметры |
+| --- | --- | --- |
+| `keyboard` | `KeyboardController` | `speed=200` |
+| `mouse` | `MouseController` | `speed=200`, `angular_speed=180` (требует camera) |
+| `ai` | `AIAgentController` | `speed=100` (требует world) |
+| `rotate` | `RotatingController` | `speed=200`, `angular_speed=180` |
+
+Пример:
+
+```json
+{
+    "agent": {
+        "x": 100,
+        "y": 200,
+        "size": 20,
+        "color": [0, 255, 0],
+        "layer": 0,
+        "angle": 0,
+        "controller": {
+            "name": "rotate",
+            "speed": 200,
+            "angular_speed": 180
+        }
+    }
+}
+```
 
 ---
 

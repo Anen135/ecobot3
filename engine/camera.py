@@ -21,11 +21,13 @@ class Camera:
             self.offset = list(self.fixed_pos)
             return
         
-        target = None
         if self.mode == "follow_agent" and self.target:
             target = self.target
         elif self.mode == "follow_food":
             target = self._find_nearest_food()
+        else:
+            return
+
         if not target:
             return
         
@@ -37,7 +39,7 @@ class Camera:
 
 
     def _find_nearest_food(self):
-        foods = [e for e in self.world.entities if e.color == (255, 0, 0)]  # красные — еда
+        foods = [e for e in self.world.entities if e.is_alive and "food" in e.tags]
         if not foods or not self.target: return None
         foods.sort(key=lambda f: (f.x - self.target.x) ** 2 + (f.y - self.target.y) ** 2)
         return foods[0] if foods else None

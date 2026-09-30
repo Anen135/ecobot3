@@ -6,7 +6,9 @@ The public API of every module. Signatures follow the actual code.
 
 ## `main.py` — entry point
 
-Runs the main loop. See [architecture.md](architecture.md) for a detailed description.
+Runs the main loop. Creates the player agent from `agent_config.json` (coordinates, size, color,
+angle) with the controller selected via `create_controller()`. See [architecture.md](architecture.md)
+for a detailed description.
 
 ---
 
@@ -33,6 +35,12 @@ Exported constants:
 | `GRID_SPACING` | Grid spacing (default `100`) |
 | `WORLD_WIDTH`, `WORLD_HEIGHT` | World size (default 1000×1000) |
 | `WORLD_TYPE` | World type: `bounded` / `infinite` / `torus` |
+| `AGENT_X`, `AGENT_Y` | Agent spawn coordinates (default 100×200) |
+| `AGENT_SIZE` | Agent size (default `20`) |
+| `AGENT_COLOR` | Agent color (default `(0, 255, 0)`) |
+| `AGENT_LAYER` | Agent render layer (default `0`) |
+| `AGENT_ANGLE` | Initial direction in degrees (default `0`) |
+| `AGENT_CONTROLLER` | Controller config dict `{"name": ..., ...}` or `None` (agent without a controller) |
 | `CAMERA_MODE` | Camera mode: `fixed` / `follow_agent` / `follow_food` |
 
 > Note: the world objects file (`world_objects.json`) is **not** loaded through `settings.py` —
@@ -117,17 +125,30 @@ WASD: `W`/`S` — Y axis, `A`/`D` — X axis, speed `speed` px/s.
 
 ### `AIAgentController(world, speed=100)`
 
-Moves the entity toward the nearest food in `world.entities`.
-⚠️ Known issue: food is searched via `"food" in e.type`, but entities have no `type` field (they
-have `tags`). See [development.md](development.md).
+Moves the entity toward the nearest food in `world.entities` (food is searched by the `"food"`
+tag). Requires a `world` reference; created by the `ai` branch of `create_controller()` with
+`world=...`.
 
-### `MouseController()`
+### `MouseController(speed=200, angular_speed=180, camera=None)`
 
-Sets the entity position to the cursor position (teleport).
+The agent turns toward the cursor and moves to it — like a donkey chasing a carrot. Screen cursor
+coordinates are converted to world ones using the `camera` offset (the camera is passed by the
+`mouse` branch of `create_controller()`). The heading (`angle`) rotates toward the target at
+`angular_speed` deg/s; movement is clamped to the remaining distance, so the agent stops exactly
+on the cursor.
 
 ### `RotatingController(speed=200, angular_speed=180)`
 
 `Q`/`E` — rotate at `angular_speed` deg/s, `W` — forward, `S` — backward along `angle`.
+
+### `create_controller(config=None, world=None, camera=None)` — factory
+
+Creates a controller: the `name` from the config selects a branch that constructs the class
+directly, reading only the parameters it needs (extra config keys are ignored). `config` can be a
+controller name (`"rotate"`) or a dict `{"name": "...", ...params}`; `None` or an empty config
+returns `None` (agent without a controller). Unknown names raise `ValueError`. The factory takes
+`world` and `camera` as arguments and passes them to the branches that require them: `world` for
+`ai`, `camera` for `mouse`; a missing required reference raises `ValueError`.
 
 ---
 

@@ -45,7 +45,8 @@ Initialization sequence:
 2. Create an empty `World()`.
 3. Load objects from `config/world_objects.json` via `load_world_objects()` and add them to the
    world with `world.add_entity()`.
-4. Create an agent — `Agent(x=100, y=200, controller=RotatingController())` — and add it to the world.
+4. Create an agent from `config/agent_config.json` (spawn coordinates, size, color, angle) with the
+   controller selected via `create_controller()` — and add it to the world.
 5. Create a camera — `Camera(world, target=agent)` (the mode comes from the configuration).
 
 Per-frame main loop:
@@ -130,8 +131,12 @@ its `update()`. Implementations:
 | --- | --- |
 | `KeyboardController` | WASD — movement along the X/Y axes, speed in px/s |
 | `RotatingController` | Q/E — rotation, W/S — forward/backward along `angle` |
-| `MouseController` | the entity follows the cursor |
-| `AIAgentController(world, ...)` | moves toward the nearest food (see known issues in [development.md](development.md)) |
+| `MouseController` | turns and moves toward the cursor (like a donkey chasing a carrot) |
+| `AIAgentController(world, ...)` | moves toward the nearest food (found by the `"food"` tag) |
+
+The controller of the player agent is chosen in `config/agent_config.json` by name. Names are
+registered in `CONTROLLER_REGISTRY`; `create_controller()` builds the instance (passing the
+`world` and `camera` references to controllers that need them).
 
 ---
 

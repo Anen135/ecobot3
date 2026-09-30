@@ -6,7 +6,9 @@
 
 ## `main.py` — точка входа
 
-Запускает главный цикл. Подробное описание см. в [architecture.md](architecture.md).
+Запускает главный цикл. Создаёт игрового агента из `agent_config.json` (координаты, размер,
+цвет, угол) с контроллером, выбранным через `create_controller()`. Подробное описание см. в
+[architecture.md](architecture.md).
 
 ---
 
@@ -33,6 +35,12 @@
 | `GRID_SPACING` | Шаг сетки (по умолчанию `100`) |
 | `WORLD_WIDTH`, `WORLD_HEIGHT` | Размер мира (по умолчанию 1000×1000) |
 | `WORLD_TYPE` | Тип мира: `bounded` / `infinite` / `torus` |
+| `AGENT_X`, `AGENT_Y` | Координаты появления агента (по умолчанию 100×200) |
+| `AGENT_SIZE` | Размер агента (по умолчанию `20`) |
+| `AGENT_COLOR` | Цвет агента (по умолчанию `(0, 255, 0)`) |
+| `AGENT_LAYER` | Слой отрисовки агента (по умолчанию `0`) |
+| `AGENT_ANGLE` | Начальное направление в градусах (по умолчанию `0`) |
+| `AGENT_CONTROLLER` | Словарь конфигурации контроллера `{"name": ..., ...}` или `None` (агент без контроллера) |
 | `CAMERA_MODE` | Режим камеры: `fixed` / `follow_agent` / `follow_food` |
 
 > Примечание: файл объектов мира (`world_objects.json`) **не** загружается через `settings.py` —
@@ -109,25 +117,53 @@
 
 ### `Controller` (базовый)
 
-`update(entity, dt)` выбрасывает `NotImplementedError` — это интерфейс.
+`update(entity, dt)` выбрасывает `NotImplementedError` — это интерфейс. Подклассы явно объявляют
+свой контракт двумя атрибутами класса:
+
+* `params` — имена параметров конструктора, которые можно передать из конфигурации;
+* `required_deps` — внешние зависимости (`"world"`, `"camera"`), внедряемые автоматически через
+  `create_controller()`.
 
 ### `KeyboardController(speed=200)`
 
 WASD: `W`/`S` — ось Y, `A`/`D` — ось X, скорость `speed` px/s.
+Объявляет `params = ("speed",)` без зависимостей.
 
 ### `AIAgentController(world, speed=100)`
 
-Движет сущность к ближайшей еде в `world.entities`.
-⚠️ Известная проблема: еда ищется через `"food" in e.type`, но у сущностей нет поля `type` (у них
-есть `tags`). См. [development.md](development.md).
+Движет сущность к ближайшей еде в `world.entities` (еда ищется по тегу `"food"`). Требует ссылку
+на `world`: объявляет `params = ("speed",)` и
+`required_deps = ("world",)`, поэтому создаётся через `create_controller({"name": "ai"}, world=...)`.
 
-### `MouseController()`
+### `MouseController(speed=200, angular_speed=180, camera=None)`
 
-Устанавливает позицию сущности в позицию курсора (телепорт).
+Агент поворачивается к курсору и движется к нему — как ослик за морковкой. Экранные координаты
+курсора переводятся в мировые с помощью смещения `camera` (камера внедряется автоматически
+через `create_controller()`). Направление (`angle`) поворачивается к цели со скоростью
+`angular_speed` град/с; движение ограничивается оставшейся дистанцией, поэтому агент
+останавливается точно на курсоре. Объявляет `params = ("speed", "angular_speed")` и
+`required_deps = ("camera",)`.
 
 ### `RotatingController(speed=200, angular_speed=180)`
 
 `Q`/`E` — поворот со скоростью `angular_speed` град/с, `W` — вперёд, `S` — назад вдоль `angle`.
+Объявляет `params = ("speed", "angular_speed")` без зависимостей.
+
+### `CONTROLLER_REGISTRY`
+
+Словарь `{"keyboard": KeyboardController, "mouse": MouseController, "ai": AIAgentController,
+"rotate": RotatingController}` — сопоставляет имена контроллеров классам. Используется функцией
+`create_controller()`.
+
+### `create_controller(config=None, world=None, camera=None)`
+
+Создаёт контроллер из имени (`"rotate"`) или словаря конфигурации вида
+`{"name": "...", ...параметры конструктора}`. Возвращает `None` для `None` или пустого конфига
+(агент без контроллера). Неизвестное имя выбрасывает `ValueError`. Параметры, не объявленные в
+`params` контроллера, игнорируются (в stdout выводится предупреждение `[!]`). Зависимости,
+объявленные в `required_deps`, внедряются автоматически: `"world"` (как у `AIAgentController`)
+и `"camera"` (как у `MouseController`); при отсутствии зависимости — `ValueError`.
+
 ---
 
 ## `engine/camera.py` — класс `Camera`

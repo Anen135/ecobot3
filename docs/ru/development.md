@@ -22,7 +22,8 @@ venv\Scripts\python.exe main.py      # Windows / PowerShell
 python main.py
 ```
 
-Управление (по умолчанию используется `RotatingController`):
+Управление (контроллер выбирается в `config/agent_config.json`, `controller.name`; по умолчанию —
+`rotate`):
 
 | Клавиша | Действие |
 | --- | --- |
@@ -46,15 +47,18 @@ ruff check .
 * Скорости задаются в пикселях в секунду; всё движение умножается на `dt`.
 * Поле `layer`: `-1` — фон, `0` — объекты, `1+` — эффекты.
 * Новые типы сущностей регистрируются в `ENTITY_REGISTRY` — после этого их можно загружать из JSON.
+* Новые типы контроллеров регистрируются в `CONTROLLER_REGISTRY` (`engine/control.py`) — после этого
+  их можно выбирать в `config/agent_config.json` через `controller.name`. Имена параметров
+  конфигурации объявляйте в `params`, внешние зависимости (`"world"` / `"camera"`) — в
+  `required_deps`.
 * Не используйте пустой `pass` внутри `apply_world_rules` (сейчас `return`, чтобы sourcery не ругался).
 * Отладочный вывод и панели скрываются за флагом `DEBUG` из конфигурации.
 
 ## Известные проблемы и замечания
 
-1. **`AIAgentController._find_closest_food()`** обращается к `e.type`, но у сущностей нет поля
-   `type` (у них есть `tags`). Использование этого контроллера вызывает `AttributeError`. По
-   умолчанию в `main.py` используется `RotatingController`, поэтому баг не проявляется. Исправление:
-   фильтровать по тегам, например `"food" in e.tags` (как в `tags={"food"}`).
+1. **`AIAgentController._find_closest_food()`** — *исправлено.* Раньше обращался к `e.type`, но у
+   сущностей нет поля `type` (у них есть `tags`), из-за чего возникал `AttributeError`. Теперь еда
+   фильтруется по тегам, например `"food" in e.tags` (как в `tags={"food"}`).
 
 2. **Поиск еды по цвету** — `Camera._find_nearest_food()` ищет еду как
    `e.color == (255, 0, 0)`. Это хак с угадыванием цвета: если цвет еды изменится

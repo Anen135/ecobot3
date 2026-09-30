@@ -22,7 +22,8 @@ venv\Scripts\python.exe main.py      # Windows / PowerShell
 python main.py
 ```
 
-Controls (the default controller is `RotatingController`):
+Controls (the controller is selected in `config/agent_config.json`, `controller.name`; the default
+is `rotate`):
 
 | Key | Action |
 | --- | --- |
@@ -46,15 +47,17 @@ ruff check .
 * Speeds are given in pixels per second; all movement is multiplied by `dt`.
 * The `layer` field: `-1` — background, `0` — objects, `1+` — effects.
 * New entity types are registered in `ENTITY_REGISTRY` — then they can be loaded from JSON.
+* New controller types are registered in `CONTROLLER_REGISTRY` (`engine/control.py`) — then they can
+  be selected in `config/agent_config.json` via `controller.name`. Declare the config parameter
+  names in `params` and external dependencies (`"world"` / `"camera"`) in `required_deps`.
 * Do not use an empty `pass` inside `apply_world_rules` (currently `return`, so sourcery does not complain).
 * Debug output and panels go behind the `DEBUG` flag from the configuration.
 
 ## Known issues and notes
 
-1. **`AIAgentController._find_closest_food()`** accesses `e.type`, but entities have no `type`
-   field (they have `tags`). Using this controller raises an `AttributeError`. `main.py` uses
-   `RotatingController` by default, so the bug is not triggered. Fix: filter by tags, e.g.
-   `"food" in e.tags` (as in `tags={"food"}`).
+1. **`AIAgentController._find_closest_food()`** — *fixed.* It used to access `e.type`, but entities
+   have no `type` field (they have `tags`), which raised an `AttributeError`. It now filters food by
+   tags, e.g. `"food" in e.tags` (as in `tags={"food"}`).
 
 2. **Food detection by color** — `Camera._find_nearest_food()` finds food as
    `e.color == (255, 0, 0)`. This is a color-guessing hack: if the food's color changes

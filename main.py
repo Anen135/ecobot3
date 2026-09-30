@@ -1,11 +1,11 @@
 # main.py
 import pygame
 from engine import ui
-from engine.settings import WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, TIMESCALE
+from engine.settings import (WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, TIMESCALE, AGENT_X, AGENT_Y, AGENT_SIZE, AGENT_COLOR, AGENT_LAYER, AGENT_ANGLE, AGENT_CONTROLLER)
 from engine.world import World
 from engine.camera import Camera
 from engine.entity import load_world_objects, Agent
-from engine.control import KeyboardController, MouseController, AIAgentController, RotatingController  # noqa: F401
+from engine.control import create_controller
 
 
 pygame.init()
@@ -21,9 +21,14 @@ for e in entities:
     world.add_entity(e)
 
 
-agent = Agent(x=100, y=200, controller=RotatingController())  # Создаем агента с начальной позицией и углом
+# Камера создаётся до агента, чтобы передать её контроллеру (например, MouseController
+# переводит координаты мыши в мировые с учётом смещения камеры)
+camera = Camera(world)
+
+# Создаем агента с параметрами и контроллером из config/agent_config.json
+agent = Agent( x=AGENT_X, y=AGENT_Y, size=AGENT_SIZE, color=AGENT_COLOR, layer=AGENT_LAYER, angle=AGENT_ANGLE, controller=create_controller(AGENT_CONTROLLER, world=world, camera=camera), )
 world.add_entity(agent)
-camera = Camera(world, target=agent)
+camera.set_target(agent)
 
 running = True
 while running:

@@ -45,7 +45,8 @@ engine.settings ──> config/*.json
 2. Создание пустого `World()`.
 3. Загрузка объектов из `config/world_objects.json` через `load_world_objects()` и
    добавление их в мир с помощью `world.add_entity()`.
-4. Создание агента — `Agent(x=100, y=200, controller=RotatingController())` — и добавление его в мир.
+4. Создание агента из `config/agent_config.json` (координаты появления, размер, цвет, угол) с
+   контроллером, выбранным через `create_controller()` — и добавление его в мир.
 5. Создание камеры — `Camera(world, target=agent)` (режим берётся из конфигурации).
 
 Главный цикл по кадрам:
@@ -130,8 +131,12 @@ pygame.display.flip()
 | --- | --- |
 | `KeyboardController` | WASD — движение по осям X/Y, скорость в px/s |
 | `RotatingController` | Q/E — поворот, W/S — вперёд/назад вдоль `angle` |
-| `MouseController` | сущность следует за курсором |
-| `AIAgentController(world, ...)` | движется к ближайшей еде (см. известные проблемы в [development.md](development.md)) |
+| `MouseController` | поворачивается и движется к курсору (как ослик за морковкой) |
+| `AIAgentController(world, ...)` | движется к ближайшей еде (ищется по тегу `"food"`) |
+
+Контроллер игрового агента выбирается в `config/agent_config.json` по имени. Имена регистрируются
+в `CONTROLLER_REGISTRY`; `create_controller()` создаёт экземпляр (передавая ссылки на `world` и
+`camera` контроллерам, которым они нужны).
 
 ---
 

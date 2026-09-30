@@ -19,6 +19,7 @@ Has two sections:
 | `camera` | camera config file name | `load_named_config("camera")` |
 | `visual` | visual config file name | `load_named_config("visual")` |
 | `objects` | world objects file name | hardcoded in `main.py` as `config/world_objects.json` (the objects file is not loaded through `settings.py`) |
+| `agent` | agent config file name | `load_named_config("agent")` — player agent parameters and the selected controller |
 
 ### `"system"` — system settings
 
@@ -38,7 +39,8 @@ Current file example:
         "window": "window_config.json",
         "camera": "camera_config.json",
         "visual": "visual_config.json",
-        "objects": "world_objects.json"
+        "objects": "world_objects.json",
+        "agent": "agent_config.json"
     },
     "system": {
         "fps_limit": 60,
@@ -85,6 +87,55 @@ Current file example:
 | `background_color` | [int, int, int] | `[0, 0, 0]` | Background color (RGB) |
 | `border_color` | [int, int, int] | `[255, 255, 255]` | World border color (only for `bounded`) |
 | `grid_spacing` | int | `100` | Grid spacing in pixels |
+
+---
+
+## `config/agent_config.json` — agent
+
+Defines the player agent: spawn parameters and the controller to load. Read by `main.py` through
+`load_named_config("agent")`; the exported constants are `AGENT_*`.
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `x` | int | `100` | Spawn X coordinate |
+| `y` | int | `200` | Spawn Y coordinate |
+| `size` | int | `20` | Edge size of the square |
+| `color` | [int, int, int] | `[0, 255, 0]` | Color (RGB) |
+| `layer` | int | `0` | Render layer |
+| `angle` | int | `0` | Initial direction in degrees (0 = right) |
+| `controller` | string / object / null | `"rotate"` | Controller selection: a controller name or an object with the required `name` key plus constructor parameters; `null` — agent without a controller |
+
+The controller `name` selects a branch in the `create_controller()` factory
+(`engine/control.py`), which constructs the class directly and reads only the parameters it needs
+(extra config keys are simply ignored). The factory receives `world` and `camera` from `main.py`:
+`world` is required by `ai`, `camera` by `mouse`; a missing required reference raises `ValueError`.
+
+| Controller name | Class | Parameters |
+| --- | --- | --- |
+| `keyboard` | `KeyboardController` | `speed=200` |
+| `mouse` | `MouseController` | `speed=200`, `angular_speed=180` (requires the camera) |
+| `ai` | `AIAgentController` | `speed=100` (requires the world) |
+| `rotate` | `RotatingController` | `speed=200`, `angular_speed=180` |
+
+Example:
+
+```json
+{
+    "agent": {
+        "x": 100,
+        "y": 200,
+        "size": 20,
+        "color": [0, 255, 0],
+        "layer": 0,
+        "angle": 0,
+        "controller": {
+            "name": "rotate",
+            "speed": 200,
+            "angular_speed": 180
+        }
+    }
+}
+```
 
 ---
 

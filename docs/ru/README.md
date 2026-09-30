@@ -34,6 +34,7 @@ ecobot3/
 │   ├── world_config.json    #   настройки мира
 │   ├── camera_config.json   #   настройки камеры
 │   ├── visual_config.json   #   настройки визуализации
+│   ├── agent_config.json    #   игровой агент: параметры и контроллер
 │   └── world_objects.json   #   объекты, загружаемые в мир
 ├── engine/                  # Пакет движка
 │   ├── __init__.py

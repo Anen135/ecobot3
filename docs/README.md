@@ -34,6 +34,7 @@ ecobot3/
 │   ├── world_config.json    #   world settings
 │   ├── camera_config.json   #   camera settings
 │   ├── visual_config.json   #   visual settings
+│   ├── agent_config.json    #   player agent: spawn parameters and controller
 │   └── world_objects.json   #   objects loaded into the world
 ├── engine/                  # Engine package
 │   ├── __init__.py
