@@ -1,0 +1,7 @@
+{
+    "game_loop": {
+        "mode": "regenerate",
+        "reset_agent_position": true,
+        "preserve_score": true
+    }
+}

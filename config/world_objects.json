@@ -1,16 +1,6 @@
 {
     "objects": [
         {
-            "type": "food",
-            "x": 300,
-            "y": 400
-        },
-        {
-            "type": "food",
-            "x": 500,
-            "y": 100
-        },
-        {
             "type": "obstacle",
             "x": 600,
             "y": 600,

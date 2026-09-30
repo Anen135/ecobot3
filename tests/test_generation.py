@@ -67,11 +67,46 @@ class GenerationTests(unittest.TestCase):
         config["enabled"] = True
         self.assertEqual(ProceduralWorldGenerator(config).generate(world), [])
 
+        config["rules"][0]["count"] = 1
+        with self.assertRaisesRegex(ValueError, "requested count=1"):
+            ProceduralWorldGenerator(config).generate(world)
+
+    def test_count_selects_highest_noise_values_without_reusing_cells(self):
+        world = World()
+        world.type = "bounded"
+        world.width = world.height = 100
+        noise = {"type": "white", "scale": 20}
+        config = {
+            "seed": 7,
+            "cell_size": 20,
+            "rules": [
+                {"object": "food", "count": 3, "noise": noise},
+                {"object": "obstacle", "count": 2, "noise": noise, "params": {"width": 10, "height": 10}},
+            ],
+        }
+        generator = ProceduralWorldGenerator(config)
+
+        entities = generator.generate(world)
+        ranked = sorted(
+            ((generator._sample(generator.rules[0], x, y), x, y) for y in range(10, 100, 20) for x in range(10, 100, 20)),
+            key=lambda item: -item[0],
+        )
+
+        self.assertEqual(len(entities), 5)
+        self.assertEqual({(entity.x, entity.y) for entity in entities if isinstance(entity, Food)},
+                         {(x, y) for _, x, y in ranked[:3]})
+        self.assertEqual({(entity.x, entity.y) for entity in entities if isinstance(entity, Obstacle)},
+                         {(x, y) for _, x, y in ranked[3:5]})
+
     def test_invalid_rule_fails_before_world_creation(self):
         with self.assertRaisesRegex(ValueError, "unknown object type"):
             ProceduralWorldGenerator({"rules": [{"object": "missing", "noise": {"type": "value"}}]})
         with self.assertRaisesRegex(ValueError, "unknown noise type"):
             ProceduralWorldGenerator({"rules": [{"object": "food", "noise": {"type": "missing"}}]})
+        with self.assertRaisesRegex(TypeError, "count must be an integer"):
+            ProceduralWorldGenerator({"rules": [{"object": "food", "noise": {"type": "white"}, "count": True}]})
+        with self.assertRaisesRegex(ValueError, "count must be at least 0"):
+            ProceduralWorldGenerator({"rules": [{"object": "food", "noise": {"type": "white"}, "count": -1}]})
 
 
 if __name__ == "__main__":

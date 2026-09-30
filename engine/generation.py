@@ -47,6 +47,9 @@ class ProceduralWorldGenerator:
         params = rule.get("params", {})
         if not isinstance(params, dict) or "x" in params or "y" in params:
             raise ValueError(f"Rule {index} params must be an object without x or y")
+        count = rule.get("count")
+        if count is not None:
+            count = self._integer(count, f"Rule {index} count", minimum=0)
 
         value_range = rule.get("range", [0, 1])
         if not isinstance(value_range, list) or len(value_range) != 2:
@@ -73,6 +76,7 @@ class ProceduralWorldGenerator:
         return {
             "object_type": object_type,
             "params": params.copy(),
+            "count": count,
             "range": (low, high),
             "noise": noise_type,
             "scale": scale,
@@ -88,29 +92,49 @@ class ProceduralWorldGenerator:
         if world.width <= 0 or world.height <= 0:
             raise ValueError("World dimensions must be positive")
 
-        entities = []
+        cells = []
         for y0 in range(0, int(world.height), self.cell_size):
             y = y0 + min(self.cell_size, world.height - y0) / 2
             for x0 in range(0, int(world.width), self.cell_size):
                 x = x0 + min(self.cell_size, world.width - x0) / 2
-                for rule in self.rules:
-                    value = self._sample(rule, x, y)
-                    low, high = rule["range"]
-                    if not low <= value <= high:
-                        continue
+                cells.append((x, y))
 
-                    cls = self.registry[rule["object_type"]]
-                    try:
-                        entity = cls(x=x, y=y, **rule["params"])
-                    except TypeError as exc:
-                        raise ValueError(f"Invalid params for {rule['object_type']!r}") from exc
-                    if world.type == "bounded":
-                        rect = entity.get_rect()
-                        if rect.left < 0 or rect.top < 0 or rect.right > world.width or rect.bottom > world.height:
-                            continue
-                    entities.append(entity)
+        placements = {}
+        for index, rule in enumerate(self.rules):
+            if rule["count"] == 0:
+                continue
+            candidates = []
+            low, high = rule["range"]
+            for cell_index, (x, y) in enumerate(cells):
+                if cell_index in placements:
+                    continue
+                value = self._sample(rule, x, y)
+                if low <= value <= high:
+                    candidates.append((value, cell_index))
+            if rule["count"] is not None:
+                candidates.sort(key=lambda candidate: (-candidate[0], candidate[1]))
+
+            placed = 0
+            for _, cell_index in candidates:
+                x, y = cells[cell_index]
+                cls = self.registry[rule["object_type"]]
+                try:
+                    entity = cls(x=x, y=y, **rule["params"])
+                except TypeError as exc:
+                    raise ValueError(f"Invalid params for {rule['object_type']!r}") from exc
+                if world.type == "bounded":
+                    rect = entity.get_rect()
+                    if rect.left < 0 or rect.top < 0 or rect.right > world.width or rect.bottom > world.height:
+                        continue
+                placements[cell_index] = entity
+                placed += 1
+                if placed == rule["count"]:
                     break
-        return entities
+            if rule["count"] is not None and placed < rule["count"]:
+                raise ValueError(
+                    f"Rule {index} requested count={rule['count']}, but only {placed} valid cells are available"
+                )
+        return [placements[index] for index in sorted(placements)]
 
     def _sample(self, rule, x, y):
         x /= rule["scale"]

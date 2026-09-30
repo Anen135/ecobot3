@@ -6,12 +6,14 @@
         "visual": "visual_config.json",
         "objects": "world_objects.json",
         "agent": "agent_config.json",
-        "generation": "generation_config.json"
+        "generation": "generation_config.json",
+        "game_loop": "game_loop_config.json"
     },
     "system": {
         "fps_limit": 60,
         "debug": true,
         "fullscreen": false,
-        "timescale": 1.0
+        "timescale": 1.0,
+        "load_static_objects": false
     }
 }

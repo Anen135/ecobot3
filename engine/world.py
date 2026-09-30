@@ -9,9 +9,13 @@ class World:
         self.height = WORLD_HEIGHT
         self.type = WORLD_TYPE
         self.entities = []
+        self.suppressed_collisions = set()
 
     def add_entity(self, entity):
         self.entities.append(entity)
+
+    def suppress_collision_until_separated(self, a, b):
+        self.suppressed_collisions.add(frozenset((id(a), id(b))))
 
     def update(self, dt):
         for entity in self.entities:
@@ -27,11 +31,19 @@ class World:
                 a, b = active[i], active[j]
                 if not (a.is_alive and b.is_alive):
                     continue
-                if self._entities_collide(a, b):
+                pair = frozenset((id(a), id(b)))
+                colliding = self._entities_collide(a, b)
+                if pair in self.suppressed_collisions:
+                    if not colliding:
+                        self.suppressed_collisions.remove(pair)
+                    continue
+                if colliding:
                     a.on_collision(b, self)
                     if a.is_alive and b.is_alive:
                         b.on_collision(a, self)
         self.entities[:] = [e for e in self.entities if e.is_alive]
+        live_ids = {id(entity) for entity in self.entities}
+        self.suppressed_collisions = {pair for pair in self.suppressed_collisions if pair <= live_ids}
 
     def _entities_collide(self, a, b):
         a_rect = a.get_rect()
