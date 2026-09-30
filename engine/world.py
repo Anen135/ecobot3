@@ -21,7 +21,7 @@ class World:
         self.handle_collisions()
 
     def handle_collisions(self):
-        active = [e for e in self.entities if e.is_alive and not e.skip_collision_check()]
+        active = [e for e in self.entities if e.is_alive]
         for i in range(len(active)):
             for j in range(i + 1, len(active)):
                 a, b = active[i], active[j]
@@ -39,11 +39,7 @@ class World:
         if self.type != "torus":
             return a_rect.colliderect(b_rect)
 
-        return any(
-            a_rect.colliderect(b_rect.move(dx, dy))
-            for dx in (-self.width, 0, self.width)
-            for dy in (-self.height, 0, self.height)
-        )
+        return any( a_rect.colliderect(b_rect.move(dx, dy)) for dx in (-self.width, 0, self.width) for dy in (-self.height, 0, self.height) )
 
     def apply_world_rules(self, entity):
         if self.type == "infinite":

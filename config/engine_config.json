@@ -5,7 +5,8 @@
         "camera": "camera_config.json",
         "visual": "visual_config.json",
         "objects": "world_objects.json",
-        "agent": "agent_config.json"
+        "agent": "agent_config.json",
+        "generation": "generation_config.json"
     },
     "system": {
         "fps_limit": 60,

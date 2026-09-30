@@ -1,10 +1,11 @@
 import pygame
 from engine import ui
-from engine.settings import (WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, TIMESCALE, AGENT_X, AGENT_Y, AGENT_SIZE, AGENT_COLOR, AGENT_LAYER, AGENT_ANGLE, AGENT_CONTROLLER)
+from engine.settings import (WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN, FPS, BACKGROUND_COLOR, TIMESCALE, AGENT_X, AGENT_Y, AGENT_SIZE, AGENT_COLOR, AGENT_LAYER, AGENT_ANGLE, AGENT_CONTROLLER, GENERATION_CONFIG)
 from engine.world import World
 from engine.camera import Camera
 from engine.entity import load_world_objects, Agent
 from engine.control import create_controller
+from engine.generation import ProceduralWorldGenerator
 
 
 pygame.init()
@@ -15,6 +16,9 @@ world = World()
 
 entities = load_world_objects("config/world_objects.json")
 for e in entities:
+    world.add_entity(e)
+
+for e in ProceduralWorldGenerator(GENERATION_CONFIG).generate(world):
     world.add_entity(e)
 
 

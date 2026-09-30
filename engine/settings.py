@@ -46,4 +46,6 @@ AGENT_LAYER = agent_cfg.get("layer", 0)
 AGENT_ANGLE = agent_cfg.get("angle", 0)
 AGENT_CONTROLLER = agent_cfg.get("controller")
 
+GENERATION_CONFIG = load_named_config("generation")["generation"]
+
 CAMERA_MODE = camera_cfg.get("mode", "follow_agent")

@@ -1,0 +1,27 @@
+{
+    "generation": {
+        "enabled": false,
+        "seed": 42,
+        "cell_size": 50,
+        "rules": [
+            {
+                "object": "food",
+                "params": {"size": 10},
+                "noise": {"type": "perlin", "scale": 180, "octaves": 3, "persistence": 0.5},
+                "range": [0.75, 1.0]
+            },
+            {
+                "object": "obstacle",
+                "params": {"width": 30, "height": 30},
+                "noise": {"type": "worley", "scale": 180, "seed_offset": 17},
+                "range": [0.92, 1.0]
+            },
+            {
+                "object": "food",
+                "params": {"size": 8, "color": [255, 160, 0]},
+                "noise": {"type": "value", "scale": 120, "octaves": 2, "seed_offset": 31},
+                "range": [0.85, 1.0]
+            }
+        ]
+    }
+}
