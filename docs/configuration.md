@@ -112,9 +112,9 @@ The controller `name` selects a branch in the `create_controller()` factory
 
 | Controller name | Class | Parameters |
 | --- | --- | --- |
-| `keyboard` | `KeyboardController` | `speed=200` |
+| `keyboard` | `KeyboardController` | `speed=200`, `angular_speed=180` |
 | `mouse` | `MouseController` | `speed=200`, `angular_speed=180` (requires the camera) |
-| `ai` | `AIAgentController` | `speed=100` (requires the world) |
+| `ai` | `AIAgentController` | `speed=100`, `angular_speed=180` (requires the world) |
 | `rotate` | `RotatingController` | `speed=200`, `angular_speed=180` |
 
 Example:

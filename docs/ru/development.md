@@ -22,8 +22,8 @@ venv\Scripts\python.exe main.py      # Windows / PowerShell
 python main.py
 ```
 
-Управление (контроллер выбирается в `config/agent_config.json`, `controller.name`; по умолчанию —
-`rotate`):
+Управление зависит от `controller.name` в `config/agent_config.json`. Сейчас выбран `ai`;
+для ручного управления укажите `keyboard` или `rotate`. Клавиши ниже относятся к `rotate`.
 
 | Клавиша | Действие |
 | --- | --- |

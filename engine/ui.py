@@ -1,4 +1,3 @@
-# ui.py
 
 import pygame
 from engine.settings import DEBUG, TIMESCALE

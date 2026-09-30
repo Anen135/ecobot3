@@ -22,8 +22,8 @@ venv\Scripts\python.exe main.py      # Windows / PowerShell
 python main.py
 ```
 
-Controls (the controller is selected in `config/agent_config.json`, `controller.name`; the default
-is `rotate`):
+Controls depend on `config/agent_config.json` (`controller.name`). The current configuration
+selects `ai`; for manual control, choose `keyboard` or `rotate`. The keys below describe `rotate`:
 
 | Key | Action |
 | --- | --- |

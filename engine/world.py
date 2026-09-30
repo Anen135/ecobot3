@@ -1,9 +1,6 @@
-# world.py
 
-import random  # noqa: F401
 import pygame
 from .settings import WORLD_WIDTH, WORLD_HEIGHT, WORLD_TYPE, BORDER_COLOR
-from .entity import ENTITY_REGISTRY  # noqa: F401
 
 
 class World:
@@ -18,14 +15,12 @@ class World:
 
     def update(self, dt):
         for entity in self.entities:
-            entity.save_position()  # запоминаем позицию на начало кадра
+            entity.save_position()
             entity.update(dt)
             self.apply_world_rules(entity)
-        # Коллизии обрабатываем после движения всех сущностей
         self.handle_collisions()
 
     def handle_collisions(self):
-        """Проверяет все пары объектов и вызывает on_collision() с обеих сторон."""
         active = [e for e in self.entities if e.is_alive and not e.skip_collision_check()]
         for i in range(len(active)):
             for j in range(i + 1, len(active)):
@@ -36,7 +31,6 @@ class World:
                     a.on_collision(b, self)
                     if a.is_alive and b.is_alive:
                         b.on_collision(a, self)
-        # Удаляем мёртвые сущности (например, съеденную еду)
         self.entities[:] = [e for e in self.entities if e.is_alive]
 
     def _entities_collide(self, a, b):
@@ -53,8 +47,7 @@ class World:
 
     def apply_world_rules(self, entity):
         if self.type == "infinite":
-            # В бесконечном мире нет ограничений
-            return # return вместо pass, чтобы sourcery не ругался на пустой метод
+            return
         if self.type == "bounded":
             half_width = getattr(entity, "width", entity.size) / 2
             half_height = getattr(entity, "height", entity.size) / 2
@@ -65,19 +58,16 @@ class World:
             entity.y %= self.height
 
     def draw(self, surface, camera_offset):
-        self.entities.sort(key=lambda e: e.layer)  # сортируем по слою
+        self.entities.sort(key=lambda e: e.layer)
         if self.type == "torus":
-            # TORUS: отрисовка с дубликатами по краям
             for entity in self.entities:
                 positions = self.get_wrapped_positions(entity)
                 for pos in positions:
                     entity.draw(surface, camera_offset, override_position=pos)
         else:
-            # BOUNDED и INFINITE — обычная отрисовка
             for entity in self.entities:
                 entity.draw(surface, camera_offset)
 
-        # Отрисовка рамки мира — только для bounded
         if self.type == "bounded":
             rect = pygame.Rect(
                 -camera_offset[0],
@@ -89,12 +79,10 @@ class World:
 
 
     def get_wrapped_positions(self, entity):
-        """Возвращает список координат, где нужно отрисовать entity"""
         positions = []
         x, y = entity.x, entity.y
         w, h = self.width, self.height
 
-        # основные позиции (центр + по краям)
         for dx in [-w, 0, w]:
             positions.extend((x + dx, y + dy) for dy in [-h, 0, h])
         return positions

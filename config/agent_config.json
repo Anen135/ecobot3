@@ -7,7 +7,7 @@
         "layer": 0,
         "angle": 0,
         "controller": {
-            "name": "ai",
+            "name": "mouse",
             "speed": 200
         }
     }

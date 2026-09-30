@@ -1,37 +1,89 @@
-# control.py
-
 import math
+from abc import ABC, abstractmethod
+
 import pygame
 
-class Controller:
+
+class Controller(ABC):
+    def __init__(self, speed=200, angular_speed=180):
+        for name, value in (("speed", speed), ("angular_speed", angular_speed)):
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be a finite non-negative number")
+        self.speed = speed
+        self.angular_speed = angular_speed
+
+    @abstractmethod
     def update(self, entity, dt):
-        raise NotImplementedError("Controller must implement update method")
+        pass
+
+    def _move(self, entity, distance):
+        radians = math.radians(entity.angle)
+        entity.x += math.cos(radians) * distance
+        entity.y += math.sin(radians) * distance
+
+    def move_forward(self, entity, dt):
+        self._move(entity, self.speed * dt)
+
+    def move_backward(self, entity, dt):
+        self._move(entity, -self.speed * dt)
+
+    def turn_left(self, entity, dt):
+        entity.angle = (entity.angle - self.angular_speed * dt) % 360
+
+    def turn_right(self, entity, dt):
+        entity.angle = (entity.angle + self.angular_speed * dt) % 360
+
+    def _move_towards(self, entity, dx, dy, dt):
+        distance = math.hypot(dx, dy)
+        if distance <= 1e-5:
+            return
+
+        target_angle = math.degrees(math.atan2(dy, dx))
+        angle_diff = (target_angle - entity.angle + 180) % 360 - 180
+        if abs(angle_diff) > 1e-9 and self.angular_speed > 0:
+            turn_time = min(dt, abs(angle_diff) / self.angular_speed)
+            if angle_diff < 0:
+                self.turn_left(entity, turn_time)
+            else:
+                self.turn_right(entity, turn_time)
+            if turn_time >= abs(angle_diff) / self.angular_speed:
+                entity.angle = target_angle % 360
+
+        if dt > 0 and self.speed > 0:
+            radians = math.radians(entity.angle)
+            forward_distance = dx * math.cos(radians) + dy * math.sin(radians)
+            if forward_distance > 0:
+                self.move_forward(entity, min(dt, forward_distance / self.speed))
+
+    def _update_from_keys(self, entity, dt, keys, left_key, right_key):
+        if keys[left_key]:
+            self.turn_left(entity, dt)
+        if keys[right_key]:
+            self.turn_right(entity, dt)
+        if keys[pygame.K_w]:
+            self.move_forward(entity, dt)
+        if keys[pygame.K_s]:
+            self.move_backward(entity, dt)
+
 
 class KeyboardController(Controller):
-    def __init__(self, speed=200):
-        self.speed = speed  # пикселей в секунду
-
     def update(self, entity, dt):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]: entity.y -= self.speed * dt
-        if keys[pygame.K_s]: entity.y += self.speed * dt
-        if keys[pygame.K_a]: entity.x -= self.speed * dt
-        if keys[pygame.K_d]: entity.x += self.speed * dt
+        self._update_from_keys(entity, dt, pygame.key.get_pressed(), pygame.K_a, pygame.K_d)
+
+
+class RotatingController(Controller):
+    def update(self, entity, dt):
+        self._update_from_keys(entity, dt, pygame.key.get_pressed(), pygame.K_q, pygame.K_e)
+
 
 class AIAgentController(Controller):
-    def __init__(self, world, speed=100):
+    def __init__(self, world, speed=100, angular_speed=180):
+        super().__init__(speed, angular_speed)
         self.world = world
-        self.speed = speed
 
     def update(self, entity, dt):
         if closest_food := self._find_closest_food(entity):
-            dx, dy = self._displacement(entity, closest_food)
-            dist = math.hypot(dx, dy)   
-            if dist > 1e-5:
-                # Нормализуем и двигаем
-                move = min(self.speed * dt, dist)
-                entity.x += move * dx / dist
-                entity.y += move * dy / dist
+            self._move_towards(entity, *self._displacement(entity, closest_food), dt)
 
     def _displacement(self, entity, target):
         dx = target.x - entity.x
@@ -42,71 +94,22 @@ class AIAgentController(Controller):
         return dx, dy
 
     def _find_closest_food(self, entity):
-        if food_entities := [e for e in self.world.entities if "food" in e.tags]:
-            return min(food_entities, key=lambda e: sum(d ** 2 for d in self._displacement(entity, e)))
-        else:
-            return None
+        foods = (e for e in self.world.entities if e.is_alive and "food" in e.tags)
+        return min(foods, key=lambda food: sum(d * d for d in self._displacement(entity, food)), default=None)
 
 
 class MouseController(Controller):
-    """Агент поворачивается к курсору и движется к нему (как ослик за морковкой)."""
     def __init__(self, speed=200, angular_speed=180, camera=None):
-        self.speed = speed  # пикселей в секунду
-        self.angular_speed = angular_speed  # град/сек
+        super().__init__(speed, angular_speed)
         self.camera = camera
 
     def update(self, entity, dt):
-        # Экранные координаты мыши -> мировые (с учётом смещения камеры)
         mouse_x, mouse_y = pygame.mouse.get_pos()
         if self.camera is not None:
             mouse_x += self.camera.offset[0]
             mouse_y += self.camera.offset[1]
+        self._move_towards(entity, mouse_x - entity.x, mouse_y - entity.y, dt)
 
-        dx = mouse_x - entity.x
-        dy = mouse_y - entity.y
-        dist = math.hypot(dx, dy)
-        if dist < 1e-5:
-            return  # уже в точке цели
-
-        # Поворачиваем направление (рисуемую "голову") к цели
-        target_angle = math.degrees(math.atan2(dy, dx))
-        diff = (target_angle - entity.angle + 180.0) % 360.0 - 180.0
-        max_turn = self.angular_speed * dt
-        entity.angle += max(-max_turn, min(max_turn, diff))
-
-        # Движение к цели (не дальше оставшейся дистанции — не проскакиваем мимо)
-        move = min(self.speed * dt, dist)
-        entity.x += dx / dist * move
-        entity.y += dy / dist * move
-        
-
-# control.py
-
-class RotatingController(Controller):
-    def __init__(self, speed=200, angular_speed=180):  # град/сек
-        self.speed = speed
-        self.angular_speed = angular_speed
-
-    def update(self, entity, dt):
-        keys = pygame.key.get_pressed()
-
-        # Поворот
-        if keys[pygame.K_q]:
-            entity.angle -= self.angular_speed * dt
-        if keys[pygame.K_e]:
-            entity.angle += self.angular_speed * dt
-
-        # Движение вперёд/назад по направлению
-        rad = math.radians(entity.angle)
-        dx = math.cos(rad) * self.speed * dt
-        dy = math.sin(rad) * self.speed * dt
-
-        if keys[pygame.K_w]:
-            entity.x += dx
-            entity.y += dy
-        if keys[pygame.K_s]:
-            entity.x -= dx
-            entity.y -= dy
 
 def create_controller(config=None, world=None, camera=None):
     if not config:
@@ -118,7 +121,10 @@ def create_controller(config=None, world=None, camera=None):
         return None
 
     if name == "keyboard":
-        return KeyboardController(speed=config.get("speed", 200))
+        return KeyboardController(
+            speed=config.get("speed", 200),
+            angular_speed=config.get("angular_speed", 180),
+        )
 
     if name == "rotate":
         return RotatingController(
@@ -138,6 +144,10 @@ def create_controller(config=None, world=None, camera=None):
     if name == "ai":
         if world is None:
             raise ValueError("Controller 'ai' requires a world reference")
-        return AIAgentController(world, speed=config.get("speed", 100))
+        return AIAgentController(
+            world,
+            speed=config.get("speed", 100),
+            angular_speed=config.get("angular_speed", 180),
+        )
 
     raise ValueError(f"Unknown controller '{name}'")

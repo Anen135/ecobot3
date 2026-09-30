@@ -1,26 +1,24 @@
-# entity.py
 
 import pygame
 import math
 import json
 
 class Entity:
-    # Блокирует ли объект движение при столкновении
     blocks_movement = False
 
     def __init__(self, x, y, layer, size=20, color=(255, 255, 255), tags=None):
         self.x = x
         self.y = y
-        self.layer = layer # -1 - background, 0 - objects, 1+ - effects
+        self.layer = layer
         self.size = size
         self.color = color
         self.tags = set(tags or [])
         self.is_alive = True
-        self._prev_x = x  # позиция на начало кадра — для отката при коллизиях
+        self._prev_x = x
         self._prev_y = y
 
     def update(self, dt):
-        pass  # To be overridden
+        pass
 
     def draw(self, surface, camera_offset=(0, 0), override_position=None):
         draw_x, draw_y = override_position or (self.x, self.y)
@@ -41,23 +39,16 @@ class Entity:
         )
 
     def save_position(self):
-        """Сохраняет текущую позицию как позицию начала кадра (для отката при коллизии)."""
         self._prev_x = self.x
         self._prev_y = self.y
 
     def revert_position(self):
-        """Возвращает x/y к значениям из начала кадра (после save_position)."""
         self.x = self._prev_x
         self.y = self._prev_y
 
     def on_collision(self, other, world):
-        """Реакция на столкновение с другим объектом. Переопределяется в подклассах.
-
-        Эффект/нейтральный объект игнорирует столкновение.
-        """
-
+        pass
     def skip_collision_check(self):
-        """Исключает объект из проверки коллизий (например, для визуальных эффектов)."""
         return False
 
 class Food(Entity):
@@ -65,29 +56,26 @@ class Food(Entity):
         super().__init__(x, y, layer, size, color, tags={"food"})
     
     def update(self, dt):
-        pass  # Food doesn't need to update
+        pass
 
     def on_collision(self, other, world):
-        # Еда исчезает, если в неё врезается агент
         if isinstance(other, Agent):
             other.score += 1
             self.is_alive = False
 
 class Obstacle(Entity):
-    blocks_movement = True  # Препятствие блокирует движение
+    blocks_movement = True
 
     def __init__(self, x, y, width, height, color=(100, 100, 100), layer=0):
-        # Заменяем size на width/height, но всё ещё передаём size как среднее значение для совместимости
         size = (width + height) // 2
         super().__init__(x, y, layer, size, color, tags={"obstacle"})
         self.width = width
         self.height = height
 
     def update(self, dt):
-        pass  # Obstacles are static
+        pass
 
     def on_collision(self, other, world):
-        # Отменяем движение того, кто врезался в препятствие
         other.revert_position()
 
     def draw(self, surface, camera_offset=(0, 0), override_position=None):
@@ -113,8 +101,8 @@ class Agent(Entity):
     def __init__(self, x, y, size=20, color=(0, 255, 0), layer=0, controller=None, angle=0):
         super().__init__(x, y, layer, size, color, tags={"agent"})
         self.controller = controller
-        self.angle = angle  # угол в градусах, 0 = вправо
-        self.score = 0  # очки, начисляемые за съеденную еду
+        self.angle = angle
+        self.score = 0
 
     def update(self, dt):
         
@@ -124,13 +112,11 @@ class Agent(Entity):
     def draw(self, surface, camera_offset=(0, 0), override_position=None):
         super().draw(surface, camera_offset, override_position)
 
-        # Отрисуем направление (от фактической позиции, включая torus-дубликаты)
         draw_x, draw_y = override_position or (self.x, self.y)
         cx = draw_x - camera_offset[0]
         cy = draw_y - camera_offset[1]
         length = self.size * 1.5
 
-        # Угол → радианы
         rad = math.radians(self.angle)
         dx = math.cos(rad) * length
         dy = math.sin(rad) * length
@@ -162,7 +148,7 @@ def load_world_objects(filepath):
         try:
             entity = cls(**params)
             objects.append(entity)
-        except Exception as e:  # noqa: BLE001 - намеренно ловим все ошибки конструктора
+        except Exception as e:
             print(f"[!] Failed to create {obj_type}: {e}")
 
     return objects

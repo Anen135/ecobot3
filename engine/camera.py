@@ -1,4 +1,3 @@
-# camera.py
 
 from .settings import WINDOW_WIDTH, WINDOW_HEIGHT, CAMERA_MODE
 
@@ -8,7 +7,7 @@ class Camera:
         self.target = target
         self.offset = [0, 0]
         self.mode = CAMERA_MODE
-        self.fixed_pos = fixed_pos  # для fixed-режима
+        self.fixed_pos = fixed_pos
 
     def set_mode(self, mode):
         self.mode = mode

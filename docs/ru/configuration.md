@@ -112,9 +112,9 @@
 
 | Имя контроллера | Класс | Параметры |
 | --- | --- | --- |
-| `keyboard` | `KeyboardController` | `speed=200` |
+| `keyboard` | `KeyboardController` | `speed=200`, `angular_speed=180` |
 | `mouse` | `MouseController` | `speed=200`, `angular_speed=180` (требует camera) |
-| `ai` | `AIAgentController` | `speed=100` (требует world) |
+| `ai` | `AIAgentController` | `speed=100`, `angular_speed=180` (требует world) |
 | `rotate` | `RotatingController` | `speed=200`, `angular_speed=180` |
 
 Пример:

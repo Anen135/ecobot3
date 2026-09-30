@@ -124,19 +124,19 @@ determines the class; the remaining fields are passed to the constructor as keyw
 
 ## Controllers
 
-The `Controller.update(entity, dt)` interface — an entity calls its own controller from inside
-its `update()`. Implementations:
+`Controller` is an abstract base class with movement and turning speeds. It provides forward,
+backward, left, and right operations; subclasses implement `update(entity, dt)` and use those
+operations. An entity calls its controller from its own `update()`. Implementations:
 
 | Controller | Control |
 | --- | --- |
-| `KeyboardController` | WASD — movement along the X/Y axes, speed in px/s |
+| `KeyboardController` | W/S - forward/backward; A/D - turn left/right |
 | `RotatingController` | Q/E — rotation, W/S — forward/backward along `angle` |
-| `MouseController` | turns and moves toward the cursor (like a donkey chasing a carrot) |
-| `AIAgentController(world, ...)` | moves toward the nearest food (found by the `"food"` tag) |
+| `MouseController` | turns and moves toward the cursor in the same frame |
+| `AIAgentController(world, ...)` | turns and moves toward the nearest food in the same frame |
 
-The controller of the player agent is chosen in `config/agent_config.json` by name. Names are
-registered in `CONTROLLER_REGISTRY`; `create_controller()` builds the instance (passing the
-`world` and `camera` references to controllers that need them).
+The controller of the player agent is chosen in `config/agent_config.json` by name.
+`create_controller()` builds the instance and passes `world` or `camera` when needed.
 
 ---
 

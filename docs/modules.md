@@ -117,25 +117,27 @@ Reads `{"objects": [...]}` from JSON. For each object:
 
 ### `Controller` (base)
 
-`update(entity, dt)` raises `NotImplementedError` — an interface.
+`Controller` is abstract: subclasses must implement `update(entity, dt)`. Every controller has
+`speed` (px/s) and `angular_speed` (deg/s), and inherits `move_forward`, `move_backward`,
+`turn_left`, and `turn_right`. Movement follows the agent's current `angle`.
 
-### `KeyboardController(speed=200)`
+### `KeyboardController(speed=200, angular_speed=180)`
 
-WASD: `W`/`S` — Y axis, `A`/`D` — X axis, speed `speed` px/s.
+`W`/`S` move forward/backward; `A`/`D` turn left/right. Turning and movement can happen together.
 
-### `AIAgentController(world, speed=100)`
+### `AIAgentController(world, speed=100, angular_speed=180)`
 
 Moves the entity toward the nearest food in `world.entities` (food is searched by the `"food"`
 tag). Requires a `world` reference; created by the `ai` branch of `create_controller()` with
-`world=...`.
+`world=...`. The agent turns and moves along its current heading in the same frame.
 
 ### `MouseController(speed=200, angular_speed=180, camera=None)`
 
 The agent turns toward the cursor and moves to it — like a donkey chasing a carrot. Screen cursor
 coordinates are converted to world ones using the `camera` offset (the camera is passed by the
 `mouse` branch of `create_controller()`). The heading (`angle`) rotates toward the target at
-`angular_speed` deg/s; movement is clamped to the remaining distance, so the agent stops exactly
-on the cursor.
+`angular_speed` deg/s while moving along its current heading. Movement is limited to avoid passing
+the target along that heading.
 
 ### `RotatingController(speed=200, angular_speed=180)`
 
