@@ -5,6 +5,8 @@ import pygame
 
 
 class Controller(ABC):
+    persist_across_worlds = False
+
     def __init__(self, speed=200, angular_speed=180):
         for name, value in (("speed", speed), ("angular_speed", angular_speed)):
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
@@ -14,6 +16,9 @@ class Controller(ABC):
 
     @abstractmethod
     def update(self, entity, dt):
+        pass
+
+    def after_step(self, entity, dt):
         pass
 
     def _move(self, entity, distance):
@@ -119,6 +124,13 @@ def create_controller(config=None, world=None, camera=None):
     name = config.get("name")
     if not name:
         return None
+
+    if name == "nn":
+        from .nn_control import NNController
+
+        if world is None:
+            raise ValueError("Controller 'nn' requires a world reference")
+        return NNController(world, **{key: value for key, value in config.items() if key != "name"})
 
     if name == "keyboard":
         return KeyboardController(

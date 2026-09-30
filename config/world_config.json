@@ -2,6 +2,6 @@
     "world": {
         "width": 1000,
         "height": 1000,
-        "type": "infinite"
+        "type": "torus"
     }
 }

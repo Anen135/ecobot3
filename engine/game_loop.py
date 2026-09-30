@@ -47,6 +47,12 @@ class GameLoop:
             y = self.agent_config.get("y", 200)
             angle = self.agent_config.get("angle", 0)
 
+        previous_controller = previous_agent.controller if previous_agent is not None else None
+        if previous_controller is not None and previous_controller.persist_across_worlds:
+            controller = previous_controller
+            controller.reset_world(world)
+        else:
+            controller = create_controller(self.agent_config.get("controller"), world=world, camera=camera)
         agent = Agent(
             x=x,
             y=y,
@@ -54,7 +60,7 @@ class GameLoop:
             color=tuple(self.agent_config.get("color", [0, 255, 0])),
             layer=self.agent_config.get("layer", 0),
             angle=angle,
-            controller=create_controller(self.agent_config.get("controller"), world=world, camera=camera),
+            controller=controller,
         )
         if previous_agent is not None and self.preserve_score:
             agent.score = previous_agent.score

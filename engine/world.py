@@ -23,6 +23,10 @@ class World:
             entity.update(dt)
             self.apply_world_rules(entity)
         self.handle_collisions()
+        for entity in self.entities:
+            controller = getattr(entity, "controller", None)
+            if controller is not None:
+                controller.after_step(entity, dt)
 
     def handle_collisions(self):
         active = [e for e in self.entities if e.is_alive]

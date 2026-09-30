@@ -7,8 +7,27 @@
         "layer": 0,
         "angle": 0,
         "controller": {
-            "name": "keyboard",
-            "speed": 200
+            "name": "nn",
+            "speed": 200,
+            "angular_speed": 180,
+            "ray_count": 24,
+            "ray_length": 350,
+            "hidden_size": 64,
+            "decision_interval": 0.1,
+            "learning_rate": 0.001,
+            "gamma": 0.99,
+            "epsilon_start": 1.0,
+            "epsilon_min": 0.05,
+            "epsilon_decay": 0.9995,
+            "replay_capacity": 10000,
+            "batch_size": 32,
+            "warmup_steps": 128,
+            "target_sync_steps": 200,
+            "food_reward": 10,
+            "time_penalty": 0.05,
+            "blocked_penalty": 1,
+            "seed": 42,
+            "draw_rays": true
         }
     }
 }

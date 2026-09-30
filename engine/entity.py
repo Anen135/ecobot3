@@ -98,6 +98,8 @@ class Agent(Entity):
             self.controller.update(self, dt)
 
     def draw(self, surface, camera_offset=(0, 0), override_position=None):
+        if self.controller is not None and hasattr(self.controller, "draw"):
+            self.controller.draw(surface, self, camera_offset, override_position)
         super().draw(surface, camera_offset, override_position)
 
         draw_x, draw_y = override_position or (self.x, self.y)

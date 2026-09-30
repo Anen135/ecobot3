@@ -15,6 +15,15 @@ def draw_debug_panel(surface, agent, dt, world, clock):
         f"World type: {world.type}",
         f"Timescale: {TIMESCALE}",
     ]
+    controller = agent.controller
+    if controller is not None and hasattr(controller, "network"):
+        lines.extend([
+            f"NN updates: {controller.network.steps}",
+            f"Replay: {len(controller.replay)}",
+            f"Epsilon: {controller.epsilon:.3f}",
+            f"Loss: {controller.network.loss:.4f}",
+            f"Reward: {controller.last_reward:.3f}",
+        ])
     line_height = 20
     padding = 10
     panel_height = padding * 2 + line_height * len(lines)
